@@ -1,4 +1,4 @@
-module github.com/hippodribble/egmreader
+module github.com/hippodribble/EGM2008Reader
 
 go 1.25.1
 
