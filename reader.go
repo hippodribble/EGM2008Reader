@@ -107,8 +107,8 @@ func (R EGM2008PGMReader) llToIndex(long, lat float64) (x float64, y float64, er
 		return 0, 0, errors.New("longitude is out of range")
 	}
 
-	long += 360
-	long = math.Mod(long, 180)
+	// long += 360
+	// long = math.Mod(long, 180)
 
 	x = (long - R.long0) / R.dLon
 	y = (lat - R.lat0) / R.dLat
@@ -130,7 +130,7 @@ func (R EGM2008PGMReader) llToIndex(long, lat float64) (x float64, y float64, er
 // }
 
 // At gets the EGM height value at the specified linear index
-//   - it returns an error if the index is out of bounds
+//   - it returns an error if the index is out of global bounds
 //   - the value is offset and scaled to a height in metres. This is the value to subtract from the GPS ellipsoid height to get an orthometric height
 func (R EGM2008PGMReader) height(i int) (float64, error) {
 	if i < 0 || i > R.nx*R.ny-1 {
@@ -150,6 +150,10 @@ func (R EGM2008PGMReader) height(i int) (float64, error) {
 
 }
 
+// returns the value of the EGM2008 geoidal height at te requested location
+// - lat/long - location of request
+//
+//	Returns an error if the location is outside -180 to +180° longitude, -90 to +90° latitude
 func (R EGM2008PGMReader) At(long, lat float64) (float64, error) {
 	i, j, err := R.llToIndex(long, lat)
 	if err != nil {
@@ -158,7 +162,7 @@ func (R EGM2008PGMReader) At(long, lat float64) (float64, error) {
 	I := math.Floor(i)
 	J := math.Floor(j)
 
-	fmt.Println(I, J, lat, long, " <")
+	// fmt.Println(I, J, lat, long, " <")
 
 	f := (I - i)
 	g := (J - j)
@@ -183,6 +187,45 @@ func (R EGM2008PGMReader) At(long, lat float64) (float64, error) {
 	l := (1-g)*c + f*d
 
 	return k*(1-g) + l*g, nil
+}
+
+// Grid returns an X,Y,Z list of longitude,latitude,height  values corresponding to the requested grid
+// - min/max long/lat define the limits
+// - dlong/dlat define the spacing
+//
+//	If the location of any of the values is outside the global range, an error will be returned
+//	i.e., outside -180 to +180° longitude, -90 to +90° latitude
+func (R EGM2008PGMReader) Grid(minlong, maxlong, minlat, maxlat, dlong, dlat float64) ([][]float64, error) {
+
+	dataout := [][]float64{}
+	for i := minlong; i <= maxlong; i += dlong {
+		for j := minlat; j <= maxlat; j += dlat {
+			h, err := R.At(i, j)
+			if err != nil {
+				return nil, err
+			}
+			dataout = append(dataout, []float64{i, j, h})
+		}
+	}
+	return dataout, nil
+}
+
+// Grid returns an X,Y,Z list of longitude,latitude,height  values corresponding to the requested list
+// the list should contain [longitude,latitude] pairs in the first two columns
+//
+//	If the location of any of the values is outside the global range, an error will be returned
+//	i.e., outside -180 to +180° longitude, -90 to +90° latitude
+func (R EGM2008PGMReader) List(list [][]float64) ([][]float64, error) {
+
+	dataout := [][]float64{}
+	for _,row := range list {
+		h, err := R.At(row[0], row[1])
+		if err != nil {
+			return nil, err
+		}
+		dataout = append(dataout, []float64{row[0], row[1], h})
+	}
+	return dataout, nil
 }
 
 func (R EGM2008PGMReader) probe(i int) (float64, error) {

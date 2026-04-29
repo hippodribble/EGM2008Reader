@@ -5,8 +5,11 @@ import (
 	"testing"
 )
 
+const EGM2008PGMFILE="/Users/glenn/Downloads/geoids/egm2008-1.pgm"
+
+
 func TestFileOpen(t *testing.T) {
-	Q, err := NewEGM2008Reader("/Users/glenn/Downloads/geoids/egm2008-1.pgm")
+	Q, err := NewEGM2008Reader(EGM2008PGMFILE)
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
@@ -14,7 +17,7 @@ func TestFileOpen(t *testing.T) {
 	defer Q.Close()
 }
 func TestLLtoIndex(t *testing.T) {
-	Q, err := NewEGM2008Reader("/Users/glenn/Downloads/geoids/egm2008-1.pgm")
+	Q, err := NewEGM2008Reader(EGM2008PGMFILE)
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
@@ -38,7 +41,7 @@ func TestLLtoIndex(t *testing.T) {
 }
 
 func TestHeightFromLatLong(t *testing.T) {
-	Q, err := NewEGM2008Reader("/Users/glenn/Downloads/geoids/egm2008-1.pgm")
+	Q, err := NewEGM2008Reader(EGM2008PGMFILE)
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
@@ -64,7 +67,7 @@ func TestHeightFromLatLong(t *testing.T) {
 }
 
 func TestProbeFile(t *testing.T) {
-	Q, err := NewEGM2008Reader("/Users/glenn/Downloads/geoids/egm2008-1.pgm")
+	Q, err := NewEGM2008Reader(EGM2008PGMFILE)
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
